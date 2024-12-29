@@ -28,6 +28,10 @@
                 pkgs-unstable.uv
               ]
             );
+
+            shellHook = ''
+    export DEBUG=1
+  '';
           }
       );
     };
