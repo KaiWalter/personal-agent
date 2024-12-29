@@ -29,7 +29,8 @@ class CalendarEventList(BaseModel):
 
 
 pa = Agent(
-    'gemini-1.5-flash',
+    'openai:gpt-4o',
+    # 'gemini-1.5-flash',
     # Register a static system prompt using a keyword argument to the agent.
     # For more complex dynamically-generated system prompts, see the example below.
     retries=3,

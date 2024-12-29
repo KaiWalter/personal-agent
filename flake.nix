@@ -41,6 +41,7 @@
 
           shellHook = ''
             export GEMINI_API_KEY=$(op item get 2pjcnxuutw7tmg7pzsvac65nqq --reveal --fields password)
+            export OPENAI_API_KEY=$(op item get lw56uuvvq6b77ln6rrnwavvity --reveal --fields nvim)
           '';
         }
     );
