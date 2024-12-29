@@ -39,6 +39,7 @@ pa = Agent(
         # 'When asked to list, list in CSV format.',
         'Use the retrieve_events tool to retrieve all personal calendar events.',
         'Calendar events are conflicting, when they overlap at the same time. Use the given tool to determine whether two events overlap.',
+        'When displaying result convert time from UTC to Central European Time.'
         ),
      deps_type=Deps,
 )
@@ -60,7 +61,7 @@ async def determine_calendar_events_overlapp(ctx: RunContext,event1: CalendarEve
     end1 = datetime.fromisoformat(event1.end)
     start2 = datetime.fromisoformat(event2.start)
     end2 = datetime.fromisoformat(event2.end)
-    return max(start1, start2) <= min(end1, end2) 
+    return max(start1, start2) < min(end1, end2) 
 
 async def main():
     async with AsyncClient() as client:
