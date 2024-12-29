@@ -6,33 +6,43 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
   };
 
-  outputs = { self, nixpkgs-unstable, nixpkgs }:
-    {
-      devShell.x86_64-linux = (
-        let
-          system = "x86_64-linux";
+  outputs = {
+    self,
+    nixpkgs-unstable,
+    nixpkgs,
+  }: {
+    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+    devShell.x86_64-linux = (
+      let
+        system = "x86_64-linux";
 
-          nixpkgsSystem = import nixpkgs { inherit system; config.allowUnfree = true; };
-          nixpkgsSystemUnstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
+        nixpkgsSystem = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+        nixpkgsSystemUnstable = import nixpkgs-unstable {
+          inherit system;
+          config.allowUnfree = true;
+        };
 
-          lib = nixpkgsSystem.lib;
-          lib-unstable = nixpkgsSystemUnstable.lib;
+        lib = nixpkgsSystem.lib;
+        lib-unstable = nixpkgsSystemUnstable.lib;
 
-          pkgs = nixpkgsSystem.pkgs;
-          pkgs-unstable = nixpkgsSystemUnstable.pkgs;
-        in
+        pkgs = nixpkgsSystem.pkgs;
+        pkgs-unstable = nixpkgsSystemUnstable.pkgs;
+      in
         pkgs.mkShell
-          {
-            nativeBuildInputs = (
-              with pkgs; [
-                pkgs-unstable.uv
-              ]
-            );
+        {
+          nativeBuildInputs = (
+            with pkgs; [
+              pkgs-unstable.uv
+            ]
+          );
 
-            shellHook = ''
-    export DEBUG=1
-  '';
-          }
-      );
-    };
+          shellHook = ''
+            export GEMINI_API_KEY=$(op item get 2pjcnxuutw7tmg7pzsvac65nqq --reveal --fields password)
+          '';
+        }
+    );
+  };
 }
