@@ -29,8 +29,11 @@ class CalendarEventList(BaseModel):
 
 
 pa = Agent(
-    'openai:gpt-4o',
+    # 'claude-3-5-sonnet-latest',
     # 'gemini-1.5-flash',
+    # 'gemini-2.0-flash-exp',
+    # 'openai:gpt-4o',
+    'mistral:open-mistral-7b',
     # Register a static system prompt using a keyword argument to the agent.
     # For more complex dynamically-generated system prompts, see the example below.
     retries=3,
@@ -39,14 +42,14 @@ pa = Agent(
         # 'When asked to list, list in CSV format.',
         'Use the retrieve_events tool to retrieve all personal calendar events.',
         'Calendar events are conflicting, when they overlap at the same time. Use the given tool to determine whether two events overlap.',
-        'When displaying result convert time from UTC to Central European Time.'
+        'When displaying result convert time from UTC to Central European Time with DST offset valid at that date.'
         ),
      deps_type=Deps,
 )
 
 @pa.tool
 async def retrieve_events(ctx: RunContext) -> CalendarEventList:
-    """Get all personal calendar events. """    
+    """Retrieve all calendar events. """    
 
     with open('../.data/calendar-events.json', 'r') as file:
         source_events = json.load(file)
@@ -70,7 +73,7 @@ async def main():
         )
         result = await pa.run(
             # 'Provide a list of conflicting calendar items.',
-            'Give me the first conflicting calendar event.',
+            'Give me the first 3 conflicting calendar events.',
             # 'Provide a list of calendar events',
             deps=deps,
         )
