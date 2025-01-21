@@ -12,26 +12,24 @@
       nixpkgs-unstable,
       nixpkgs,
     }:
+    let
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
+
+      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
+
+      pkgsFor = system: import nixpkgs { inherit system; };
+      pkgsUnstableFor = system: import nixpkgs-unstable { inherit system; };
+    in
     {
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
-      devShell.x86_64-linux = (
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+      devShell = forAllSystems (
+        system:
         let
-          system = "x86_64-linux";
-
-          nixpkgsSystem = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
-          nixpkgsSystemUnstable = import nixpkgs-unstable {
-            inherit system;
-            config.allowUnfree = true;
-          };
-
-          lib = nixpkgsSystem.lib;
-          lib-unstable = nixpkgsSystemUnstable.lib;
-
-          pkgs = nixpkgsSystem.pkgs;
-          pkgs-unstable = nixpkgsSystemUnstable.pkgs;
+          pkgs = pkgsFor system;
+          pkgs-unstable = pkgsUnstableFor system;
         in
         pkgs.mkShell {
           nativeBuildInputs = (

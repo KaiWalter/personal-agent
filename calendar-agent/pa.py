@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from devtools import debug
 from httpx import AsyncClient
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.ollama import OllamaModel
 from typing import List
 import asyncio
 import json
@@ -28,20 +29,19 @@ class CalendarEventList(BaseModel):
     events: List[CalendarEvent]
 
 
+ollama_model = OllamaModel(
+    model_name='mistral-nemo',
+)
+
 pa = Agent(
-    # 'claude-3-5-sonnet-latest',
-    # 'gemini-1.5-flash',
-    # 'gemini-2.0-flash-exp',
-    # 'openai:gpt-4o',
-    'mistral:open-mistral-7b',
-    # Register a static system prompt using a keyword argument to the agent.
-    # For more complex dynamically-generated system prompts, see the example below.
+    model=ollama_model,
     retries=3,
     system_prompt=(
-        #'Be concise, reply with one sentence when asked a specific question.',
-        # 'When asked to list, list in CSV format.',
+        'You are a professional and thorough personal assistant that helps his user to manage tasks and time.',
+        'You help with various tasks:',
+        'Task 1 - detect conflicting events in your user''s calendar',
         'Use the retrieve_events tool to retrieve all personal calendar events.',
-        'Calendar events are conflicting, when they overlap at the same time. Use the given tool to determine whether two events overlap.',
+        'Calendar events are conflicting, when they overlap at the same time. Use tool determine_calendar_events_overlap to determine whether two events overlap.',
         'When displaying result convert time from UTC to Central European Time with DST offset valid at that date.'
         ),
      deps_type=Deps,
@@ -51,14 +51,25 @@ pa = Agent(
 async def retrieve_events(ctx: RunContext) -> CalendarEventList:
     """Retrieve all calendar events. """    
 
+    # with open('../.data/calendar-events.json', 'r') as file:
+    #     source_events = json.load(file)
+    #
+    # result_events = [CalendarEvent(**event) for event in source_events]
+
     with open('../.data/calendar-events.json', 'r') as file:
         source_events = json.load(file)
 
-    result_events = [CalendarEvent(**event) for event in source_events]
+    result_events = []
+    for event in source_events:
+        try:
+            result_events.append(CalendarEvent(**event))
+        except ValidationError as e:
+            print(f"Error creating CalendarEvent: {e}")
+
     return CalendarEventList(events=result_events)
 
 @pa.tool
-async def determine_calendar_events_overlapp(ctx: RunContext,event1: CalendarEvent, event2:CalendarEvent) -> bool:
+async def determine_calendar_events_overlap(ctx: RunContext,event1: CalendarEvent, event2:CalendarEvent) -> bool:
     """Determine whether two calendar events overlap. One event is given with parameter event1 and the other with event2."""
     start1 = datetime.fromisoformat(event1.start)
     end1 = datetime.fromisoformat(event1.end)
@@ -72,12 +83,10 @@ async def main():
             client=client,
         )
         result = await pa.run(
-            # 'Provide a list of conflicting calendar items.',
-            'Give me the first 3 conflicting calendar events.',
-            # 'Provide a list of calendar events',
+            'Provide a list of conflicting calendar events.',
             deps=deps,
         )
-        debug(result)
+        # debug(result)
         print(result.data)
 
 if __name__ == "__main__":
