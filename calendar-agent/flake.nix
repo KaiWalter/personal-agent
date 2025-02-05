@@ -32,14 +32,13 @@
           pkgs-unstable = pkgsUnstableFor system;
         in
         pkgs.mkShell {
-          nativeBuildInputs = (
-            with pkgs;
-            [
-              pkgs-unstable.uv
-            ]
-          );
+          nativeBuildInputs = ([
+            pkgs.zsh
+            pkgs-unstable.uv
+          ]);
 
           shellHook = ''
+              exec ${pkgs.zsh}/bin/zsh
             export GEMINI_API_KEY=$(op item get 2pjcnxuutw7tmg7pzsvac65nqq --reveal --fields password)
             export ANTHROPIC_API_KEY=$(op item get il25qguduuefr7pjzzxn5nuf4q --reveal --fields password)
             export MISTRAL_API_KEY=$(op item get i4akc4bf7fgnk2gf5zuddwyfjy --reveal --fields password)

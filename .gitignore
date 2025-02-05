@@ -1,5 +1,7 @@
 # own
 .data/
+config.toml
+settings.yaml
 # ---
 
 # Byte-compiled / optimized / DLL files
